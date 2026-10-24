@@ -12,6 +12,11 @@ def create_app(config_name: str = None) -> Flask:
     """Application factory for the EMI Management System."""
     app = Flask(__name__)
 
+    # Vercel's deployed source directory is read-only. Use its writable
+    # temporary directory for Flask's instance folder in serverless runs.
+    if os.getenv("VERCEL"):
+        app.instance_path = "/tmp/emi_management_instance"
+
     # Determine configuration
     if config_name is None:
         config_name = os.getenv("FLASK_ENV", "development").lower()
