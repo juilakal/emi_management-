@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block title %}Reports & Financial Analytics - EMI Management System{% endblock %}
+{% block page_heading %}Reports & Portfolio Analytics{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
+    <div>
+        <h4 class="fw-bold text-dark mb-1">Financial Analysis & Reports</h4>
+        <p class="text-muted small mb-0">Consolidated financial overview, repayment velocity, and download center.</p>
+    </div>
+    <a href="{{ url_for('reports.export_csv') }}" class="btn btn-outline-custom d-flex align-items-center gap-2">
+        <i class="bi bi-file-earmark-spreadsheet text-success fs-5"></i>
+        <span>Download CSV Ledger</span>
+    </a>
+</div>
+
+<!-- Summary Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-icon-wrapper icon-green">
+                <i class="bi bi-cash-stack"></i>
+            </div>
+            <div class="stat-label">Total Amount Paid</div>
+            <div class="stat-value text-success fs-4">{{ data.total_amount_paid|currency }}</div>
+            <div class="small text-muted mt-1">Across all loans</div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-icon-wrapper icon-red">
+                <i class="bi bi-shield-slash"></i>
+            </div>
+            <div class="stat-label">Outstanding Principal</div>
+            <div class="stat-value text-danger fs-4">{{ data.total_outstanding_principal|currency }}</div>
+            <div class="small text-muted mt-1">Net unpaid principal</div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-icon-wrapper icon-blue">
+                <i class="bi bi-wallet2"></i>
+            </div>
+            <div class="stat-label">Original Borrowed</div>
+            <div class="stat-value text-dark fs-4">{{ data.total_original_principal|currency }}</div>
+            <div class="small text-muted mt-1">Gross principal</div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-icon-wrapper icon-gold">
+                <i class="bi bi-hourglass-top"></i>
+            </div>
+            <div class="stat-label">Remaining Scheduled</div>
+            <div class="stat-value text-primary fs-4">{{ data.remaining_scheduled_payments|currency }}</div>
+            <div class="small text-muted mt-1">Total future commitments</div>
+        </div>
+    </div>
+</div>
+
+<!-- Monthly Repayment Trend Chart -->
+<div class="content-card mb-4">
+    <div class="content-card-header">
+        <h5><i class="bi bi-graph-up text-success"></i> Monthly Payment Volume Trend</h5>
+    </div>
+    <div class="content-card-body" style="min-height: 260px;">
+        {% if data.monthly_breakdown|length == 0 %}
+            <div class="p-4 text-center text-muted small">
+                No payment history available yet to plot trend lines.
+            </div>
+        {% else %}
+            <div style="position: relative; width: 100%; height: 230px;">
+                <canvas id="monthlyTrendChart"></canvas>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Loan-Wise Performance Table -->
+<div class="content-card mb-4">
+    <div class="content-card-header">
+        <h5><i class="bi bi-pie-chart text-primary"></i> Loan-Wise Repayment Summary</h5>
+    </div>
+    <div class="content-card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-custom table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Loan Name</th>
+                        <th>Lender</th>
+                        <th>Principal</th>
+                        <th>Monthly EMI</th>
+                        <th>Total Paid</th>
+                        <th>Outstanding Bal</th>
+                        <th>Instalments Settled</th>
+                        <th>Progress</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for l in data.loan_summaries %}
+                    <tr>
+                        <td class="fw-semibold text-dark">{{ l.loan_name }}</td>
+                        <td>{{ l.lender_name }}</td>
+                        <td>{{ l.principal|currency }}</td>
+                        <td class="fw-bold text-primary">{{ l.emi|currency }}</td>
+                        <td class="text-success fw-medium">{{ l.total_paid|currency }}</td>
+                        <td class="text-danger fw-medium">{{ l.outstanding|currency }}</td>
+                        <td>{{ l.paid_installments }} of {{ l.total_installments }}</td>
+                        <td style="min-width: 120px;">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="progress progress-custom flex-grow-1">
+                                    <div class="progress-bar" style="width: {{ l.progress_pct }}%;"></div>
+                                </div>
+                                <span class="small fw-semibold text-muted">{{ l.progress_pct }}%</span>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge-status {% if l.status == 'Active' %}badge-active{% else %}badge-closed{% endif %}">
+                                {{ l.status }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Monthly Breakdown Table -->
+<div class="content-card">
+    <div class="content-card-header">
+        <h5><i class="bi bi-calendar-month text-dark"></i> Monthly Inflow Summary</h5>
+    </div>
+    <div class="content-card-body p-0">
+        {% if data.monthly_breakdown|length == 0 %}
+            <div class="p-4 text-center text-muted small">No payments recorded yet.</div>
+        {% else %}
+            <div class="table-responsive">
+                <table class="table table-custom table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Month Period</th>
+                            <th>Total Repaid Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in data.monthly_breakdown %}
+                        <tr>
+                            <td class="fw-medium text-dark">{{ row.month }}</td>
+                            <td class="fw-bold text-success">{{ row.total|currency }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/dashboard_charts.js') }}"></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const labels = {{ data.monthly_labels|tojson | safe }};
+    const values = {{ data.monthly_values|tojson | safe }};
+    initReportsChart(labels, values);
+});
+</script>
+{% endblock %}

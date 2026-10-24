@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block title %}EMI Repayment Schedule - EMI Management System{% endblock %}
+{% block page_heading %}Consolidated EMI Schedule{% endblock %}
+
+{% block content %}
+<div class="content-card mb-4">
+    <div class="content-card-body p-3">
+        <!-- Filter Bar -->
+        <form action="{{ url_for('emi.schedule') }}" method="GET" class="row g-2 align-items-center">
+            <div class="col-md-5">
+                <label for="filter_loan" class="form-label small text-muted mb-1">Filter by Loan</label>
+                <select class="form-select form-select-sm" id="filter_loan" name="loan_id" onchange="this.form.submit()">
+                    <option value="">-- All Active & Closed Loans --</option>
+                    {% for l in loans %}
+                        <option value="{{ l.loan_id }}" {% if selected_loan_id == l.loan_id %}selected{% endif %}>
+                            {{ l.loan_name }} ({{ l.lender_name }})
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="filter_status" class="form-label small text-muted mb-1">Payment Status</label>
+                <select class="form-select form-select-sm" id="filter_status" name="status" onchange="this.form.submit()">
+                    <option value="">-- All Statuses --</option>
+                    <option value="Pending" {% if selected_status == 'Pending' %}selected{% endif %}>Pending</option>
+                    <option value="Partially Paid" {% if selected_status == 'Partially Paid' %}selected{% endif %}>Partially Paid</option>
+                    <option value="Paid" {% if selected_status == 'Paid' %}selected{% endif %}>Paid</option>
+                    <option value="Overdue" {% if selected_status == 'Overdue' %}selected{% endif %}>Overdue</option>
+                </select>
+            </div>
+            <div class="col-md-3 d-flex align-items-end gap-2 mt-auto">
+                <button type="submit" class="btn btn-sm btn-primary-custom flex-grow-1">Filter</button>
+                <a href="{{ url_for('emi.schedule') }}" class="btn btn-sm btn-outline-custom">Reset</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if installments|length == 0 %}
+<div class="content-card">
+    <div class="empty-state">
+        <div class="empty-state-icon">
+            <i class="bi bi-calendar-x text-muted"></i>
+        </div>
+        <h4 class="empty-state-title">No Instalments Found</h4>
+        <p class="empty-state-text">
+            No repayment instalments matched your filter criteria, or you have not added any loans yet.
+        </p>
+        <a href="{{ url_for('loans.add_loan') }}" class="btn btn-primary-custom">
+            <i class="bi bi-plus-lg me-1"></i> Add a Loan
+        </a>
+    </div>
+</div>
+{% else %}
+
+<div class="content-card">
+    <div class="content-card-header">
+        <h5><i class="bi bi-table text-primary"></i> Scheduled Instalments</h5>
+        <span class="small text-muted">{{ installments|length }} Records Displayed</span>
+    </div>
+    <div class="content-card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-custom table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Loan Name</th>
+                        <th>Instalment #</th>
+                        <th>Due Date</th>
+                        <th>Principal Comp.</th>
+                        <th>Interest Comp.</th>
+                        <th>Total EMI</th>
+                        <th>Amount Paid</th>
+                        <th>Remaining</th>
+                        <th>Payment Status</th>
+                        <th class="text-end">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in installments %}
+                    <tr class="{% if item.computed_status == 'Overdue' %}table-danger-subtle{% endif %}">
+                        <td class="fw-semibold text-dark">
+                            <a href="{{ url_for('loans.view_loan', loan_id=item.loan_id) }}" class="text-decoration-none">
+                                {{ item.loan.loan_name }}
+                            </a>
+                            <div class="small text-muted">{{ item.loan.lender_name }}</div>
+                        </td>
+                        <td class="fw-bold text-muted">#{{ item.installment_number }}</td>
+                        <td>
+                            <div class="fw-medium">{{ item.due_date|date_format }}</div>
+                            {% if item.due_date < today_date and item.remaining_amount > 0 %}
+                                <div class="text-danger small"><i class="bi bi-clock-history me-1"></i>Overdue</div>
+                            {% endif %}
+                        </td>
+                        <td>{{ item.principal_component|currency }}</td>
+                        <td>{{ item.interest_component|currency }}</td>
+                        <td class="fw-bold text-dark">{{ item.emi_amount|currency }}</td>
+                        <td class="text-success fw-medium">{{ item.amount_paid|currency }}</td>
+                        <td class="fw-bold {% if item.remaining_amount > 0 %}text-danger{% else %}text-muted{% endif %}">
+                            {{ item.remaining_amount|currency }}
+                        </td>
+                        <td>
+                            <span class="badge-status {{ item.status_badge_class }}">
+                                {{ item.computed_status }}
+                            </span>
+                        </td>
+                        <td class="text-end">
+                            {% if item.remaining_amount > 0 %}
+                                <a href="{{ url_for('payments.record_installment_payment', emi_id=item.emi_id) }}" 
+                                   class="btn btn-sm btn-success-custom py-1 px-3">
+                                    <i class="bi bi-credit-card me-1"></i> Pay
+                                </a>
+                            {% else %}
+                                <span class="text-success small fw-semibold">
+                                    <i class="bi bi-check-circle-fill me-1"></i> Paid
+                                </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endif %}
+{% endblock %}

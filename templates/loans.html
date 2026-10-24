@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block title %}My Loans - EMI Management System{% endblock %}
+{% block page_heading %}Loan Portfolio{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
+    <div>
+        <h4 class="fw-bold text-dark mb-1">Your Loans</h4>
+        <p class="text-muted small mb-0">Manage all your active and closed borrowings and their repayment schedules.</p>
+    </div>
+    <a href="{{ url_for('loans.add_loan') }}" class="btn btn-primary-custom d-flex align-items-center gap-2">
+        <i class="bi bi-plus-circle"></i>
+        <span>Add New Loan</span>
+    </a>
+</div>
+
+{% if loans|length == 0 %}
+<div class="content-card">
+    <div class="empty-state">
+        <div class="empty-state-icon">
+            <i class="bi bi-wallet text-muted"></i>
+        </div>
+        <h4 class="empty-state-title">No Loans Created Yet</h4>
+        <p class="empty-state-text">
+            Start tracking your EMIs by creating your first loan profile. The system will automatically build your monthly repayment schedule.
+        </p>
+        <a href="{{ url_for('loans.add_loan') }}" class="btn btn-primary-custom">
+            <i class="bi bi-plus-lg me-1"></i> Add Your First Loan
+        </a>
+    </div>
+</div>
+{% else %}
+
+<div class="content-card">
+    <div class="content-card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-custom table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Loan Details</th>
+                        <th>Lender</th>
+                        <th>Principal</th>
+                        <th>Rate & Tenure</th>
+                        <th>Monthly EMI</th>
+                        <th>Repaid / Bal</th>
+                        <th>Progress</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for loan in loans %}
+                    <tr>
+                        <td>
+                            <div class="fw-bold text-dark">{{ loan.loan_name }}</div>
+                            <div class="small text-muted">Started: {{ loan.start_date|date_format }}</div>
+                        </td>
+                        <td>{{ loan.lender_name }}</td>
+                        <td class="fw-semibold">{{ loan.principal_amount|currency }}</td>
+                        <td>
+                            <div>{{ loan.annual_interest_rate }}% p.a.</div>
+                            <div class="small text-muted">{{ loan.tenure_months }} mos</div>
+                        </td>
+                        <td class="fw-bold text-primary">{{ loan.emi_amount|currency }}</td>
+                        <td>
+                            <div class="text-success small fw-medium">Paid: {{ loan.total_paid|currency }}</div>
+                            <div class="text-danger small fw-medium">Bal: {{ loan.outstanding_principal|currency }}</div>
+                        </td>
+                        <td style="min-width: 130px;">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="progress progress-custom flex-grow-1">
+                                    <div class="progress-bar" style="width: {{ loan.repayment_progress_percentage }}%;"></div>
+                                </div>
+                                <span class="small fw-semibold text-muted">{{ loan.repayment_progress_percentage }}%</span>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge-status {% if loan.status == 'Active' %}badge-active{% else %}badge-closed{% endif %}">
+                                {{ loan.status }}
+                            </span>
+                        </td>
+                        <td class="text-end">
+                            <div class="d-inline-flex gap-1">
+                                <a href="{{ url_for('loans.view_loan', loan_id=loan.loan_id) }}" 
+                                   class="btn btn-sm btn-outline-custom" title="View Repayment Schedule">
+                                    <i class="bi bi-calendar3"></i>
+                                </a>
+                                <a href="{{ url_for('loans.edit_loan', loan_id=loan.loan_id) }}" 
+                                   class="btn btn-sm btn-outline-custom" title="Edit Loan Details">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <button type="button" class="btn btn-sm btn-outline-danger" 
+                                        data-bs-toggle="modal" data-bs-target="#deleteModal{{ loan.loan_id }}" title="Delete Loan">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+
+                            <!-- Delete Confirmation Modal -->
+                            <div class="modal fade text-start" id="deleteModal{{ loan.loan_id }}" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content border-0 shadow-lg">
+                                        <div class="modal-header bg-danger text-white">
+                                            <h5 class="modal-title fs-6 fw-bold">
+                                                <i class="bi bi-exclamation-triangle-fill me-2"></i> Confirm Loan Deletion
+                                            </h5>
+                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body p-4">
+                                            <p class="mb-2">Are you sure you want to delete the loan <strong>"{{ loan.loan_name }}"</strong>?</p>
+                                            <div class="alert alert-warning small mb-0">
+                                                <i class="bi bi-info-circle me-1"></i>
+                                                This action will permanently remove this loan along with its <strong>{{ loan.schedule|length }} scheduled instalments</strong> and all recorded payment transactions. This action cannot be undone.
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer bg-light">
+                                            <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                                            <form action="{{ url_for('loans.remove_loan', loan_id=loan.loan_id) }}" method="POST">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                <button type="submit" class="btn btn-sm btn-danger">Yes, Delete Loan</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endif %}
+{% endblock %}

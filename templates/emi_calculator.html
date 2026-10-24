@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+
+{% block title %}EMI Calculator - EMI Management System{% endblock %}
+{% block page_heading %}Reducing-Balance EMI Calculator{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Calculator Input Form -->
+    <div class="col-lg-5">
+        <div class="content-card">
+            <div class="content-card-header">
+                <h5><i class="bi bi-calculator-fill text-primary"></i> Loan Parameters</h5>
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle">Live Calculator</span>
+            </div>
+            <div class="content-card-body p-4">
+                <form action="{{ url_for('emi.calculator') }}" method="POST" id="emiCalculatorForm" class="no-disable-btn">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                    <!-- Principal -->
+                    <div class="mb-3">
+                        <label for="calc_principal" class="form-label">Loan Amount / Principal (₹) <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light text-muted">₹</span>
+                            <input type="number" step="1000" min="1" class="form-control" id="calc_principal" name="principal" 
+                                   value="{{ principal }}" placeholder="e.g. 500000" required>
+                        </div>
+                        <div class="form-text">Total borrowings requested.</div>
+                    </div>
+
+                    <!-- Interest Rate -->
+                    <div class="mb-3">
+                        <label for="calc_rate" class="form-label">Annual Interest Rate (%) <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <input type="number" step="0.05" min="0" max="100" class="form-control" id="calc_rate" name="rate" 
+                                   value="{{ rate }}" placeholder="e.g. 8.5 (or 0 for zero-interest)" required>
+                            <span class="input-group-text bg-light text-muted">% p.a.</span>
+                        </div>
+                        <div class="form-text">Reducing-balance annual interest rate.</div>
+                    </div>
+
+                    <!-- Tenure -->
+                    <div class="mb-4">
+                        <label for="calc_tenure" class="form-label">Loan Tenure <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <input type="number" min="1" max="360" class="form-control" id="calc_tenure" name="tenure" 
+                                   value="{{ tenure }}" placeholder="e.g. 24" required>
+                            <select class="form-select" id="calc_tenure_unit" name="tenure_unit" style="max-width: 120px;">
+                                <option value="months" {% if tenure_unit == 'months' %}selected{% endif %}>Months</option>
+                                <option value="years" {% if tenure_unit == 'years' %}selected{% endif %}>Years</option>
+                            </select>
+                        </div>
+                        <div class="form-text">Repayment duration (up to 360 months / 30 years).</div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary-custom">
+                            <i class="bi bi-arrow-repeat me-1"></i> Calculate Full Schedule
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Mathematical Formula Note -->
+                <div class="mt-4 p-3 bg-light rounded-3 border">
+                    <div class="fw-semibold small text-dark mb-1">Standard Reducing-Balance Formula:</div>
+                    <code class="text-primary small d-block mb-1">EMI = P &times; r &times; (1 + r)&supn; / ((1 + r)&supn; &minus; 1)</code>
+                    <div class="text-muted small">
+                        Where <strong>P</strong> = Principal, <strong>r</strong> = Monthly rate (Annual Rate / 1200), <strong>n</strong> = Tenure months. For 0% interest loans: <code>EMI = P / n</code>.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Calculator Outputs & Summary -->
+    <div class="col-lg-7">
+        <div class="content-card mb-4">
+            <div class="content-card-header">
+                <h5><i class="bi bi-graph-up text-success"></i> Calculation Results</h5>
+                <span class="badge bg-secondary-subtle text-secondary">Estimates Only</span>
+            </div>
+            <div class="content-card-body p-4">
+                <div class="row g-3 text-center mb-4">
+                    <div class="col-sm-6">
+                        <div class="p-3 bg-light rounded-3 border">
+                            <div class="text-muted small text-uppercase fw-semibold">Monthly EMI</div>
+                            <div class="h3 fw-bold text-primary mb-0 mt-1" id="display_emi">
+                                {% if result %}{{ result.monthly_emi|currency }}{% else %}₹0.00{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="p-3 bg-light rounded-3 border">
+                            <div class="text-muted small text-uppercase fw-semibold">Total Amount Payable</div>
+                            <div class="h3 fw-bold text-dark mb-0 mt-1" id="display_total">
+                                {% if result %}{{ result.total_payable|currency }}{% else %}₹0.00{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="p-3 bg-light rounded-3 border">
+                            <div class="text-muted small text-uppercase fw-semibold">Principal Amount</div>
+                            <div class="h4 fw-bold text-dark mb-0 mt-1" id="display_principal">
+                                {% if result %}{{ result.principal|currency }}{% else %}₹0.00{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="p-3 bg-light rounded-3 border">
+                            <div class="text-muted small text-uppercase fw-semibold">Total Interest Payable</div>
+                            <div class="h4 fw-bold text-danger mb-0 mt-1" id="display_interest">
+                                {% if result %}{{ result.total_interest|currency }}{% else %}₹0.00{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Call to action: Create loan using calculated details -->
+                <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3 p-3 bg-success-subtle rounded-3 border border-success-subtle">
+                    <div class="small text-success-emphasis">
+                        <i class="bi bi-check2-circle me-1"></i> Satisfied with this repayment plan? Save it directly to your portfolio.
+                    </div>
+                    <a href="{{ url_for('loans.add_loan') }}" id="btnApplyLoan" class="btn btn-sm btn-success-custom text-nowrap">
+                        <i class="bi bi-plus-circle me-1"></i> Use Details to Create Loan
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Amortization Schedule Preview Table (When calculated) -->
+        {% if result and result.schedule %}
+        <div class="content-card">
+            <div class="content-card-header">
+                <h5><i class="bi bi-table text-primary"></i> Amortization Schedule Preview</h5>
+                <span class="small text-muted">{{ result.tenure_months }} Months Breakdown</span>
+            </div>
+            <div class="content-card-body p-0" style="max-height: 420px; overflow-y: auto;">
+                <table class="table table-custom table-hover align-middle mb-0">
+                    <thead class="sticky-top">
+                        <tr>
+                            <th>Month</th>
+                            <th>Due Date</th>
+                            <th>Principal</th>
+                            <th>Interest</th>
+                            <th>EMI</th>
+                            <th>Remaining Bal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in result.schedule %}
+                        <tr>
+                            <td class="fw-bold text-muted">#{{ item.installment_number }}</td>
+                            <td>{{ item.due_date|date_format }}</td>
+                            <td>{{ item.principal_component|currency }}</td>
+                            <td>{{ item.interest_component|currency }}</td>
+                            <td class="fw-semibold text-dark">{{ item.emi_amount|currency }}</td>
+                            <td class="text-danger small">{{ item.remaining_balance|currency }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/emi_calculator.js') }}"></script>
+{% endblock %}

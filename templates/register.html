@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Create Account - EMI Management System{% endblock %}
+
+{% block public_content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-7 col-lg-5">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="card-header bg-dark text-white text-center py-4">
+                    <div class="stat-icon-wrapper icon-blue mx-auto mb-2" style="width: 54px; height: 54px;">
+                        <i class="bi bi-person-plus-fill fs-3 text-primary"></i>
+                    </div>
+                    <h4 class="fw-bold mb-1">Create User Account</h4>
+                    <p class="text-secondary small mb-0">Sign up to manage your loans and repayment schedules</p>
+                </div>
+                <div class="card-body p-4 p-md-5 bg-white">
+                    <form action="{{ url_for('auth.register') }}" method="POST" novalidate>
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                        <div class="mb-3">
+                            <label for="full_name" class="form-label">Full Name <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-muted"><i class="bi bi-person"></i></span>
+                                <input type="text" class="form-control" id="full_name" name="full_name" 
+                                       value="{{ full_name or '' }}" placeholder="e.g. John Doe" required autofocus>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email Address <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-muted"><i class="bi bi-envelope"></i></span>
+                                <input type="email" class="form-control" id="email" name="email" 
+                                       value="{{ email or '' }}" placeholder="user@example.com" required>
+                            </div>
+                            <div class="form-text">We'll never share your email with anyone else.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-muted"><i class="bi bi-lock"></i></span>
+                                <input type="password" class="form-control" id="password" name="password" 
+                                       placeholder="Minimum 6 characters" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="confirm_password" class="form-label">Confirm Password <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-muted"><i class="bi bi-shield-lock"></i></span>
+                                <input type="password" class="form-control" id="confirm_password" name="confirm_password" 
+                                       placeholder="Re-type your password" required>
+                            </div>
+                        </div>
+
+                        <div class="d-grid mb-3">
+                            <button type="submit" class="btn btn-primary-custom btn-lg">
+                                <i class="bi bi-person-check me-2"></i> Register Account
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="text-center pt-3 border-top">
+                        <span class="text-muted small">Already have an account?</span>
+                        <a href="{{ url_for('auth.login') }}" class="fw-semibold text-primary ms-1 small">Sign In</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

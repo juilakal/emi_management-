@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block title %}{{ loan.loan_name }} Details - EMI Management System{% endblock %}
+{% block page_heading %}Loan Repayment Overview{% endblock %}
+
+{% block content %}
+<!-- Top Header Actions -->
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <h4 class="fw-bold text-dark mb-0">{{ loan.loan_name }}</h4>
+            <span class="badge-status {% if loan.status == 'Active' %}badge-active{% else %}badge-closed{% endif %}">
+                {{ loan.status }}
+            </span>
+        </div>
+        <p class="text-muted small mb-0">Lender: <strong>{{ loan.lender_name }}</strong> &bull; Commenced on {{ loan.start_date|date_format }}</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('loans.list_loans') }}" class="btn btn-sm btn-outline-custom">
+            <i class="bi bi-arrow-left me-1"></i> All Loans
+        </a>
+        <a href="{{ url_for('loans.edit_loan', loan_id=loan.loan_id) }}" class="btn btn-sm btn-outline-custom">
+            <i class="bi bi-pencil me-1"></i> Edit
+        </a>
+    </div>
+</div>
+
+<!-- Financial Summary Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-label">Principal Amount</div>
+            <div class="stat-value text-dark fs-4">{{ loan.principal_amount|currency }}</div>
+            <div class="small text-muted mt-1">{{ loan.annual_interest_rate }}% p.a. &bull; {{ loan.tenure_months }} Months</div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-label">Monthly EMI</div>
+            <div class="stat-value text-primary fs-4">{{ loan.emi_amount|currency }}</div>
+            <div class="small text-muted mt-1">Reducing balance method</div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-label">Total Amount Paid</div>
+            <div class="stat-value text-success fs-4">{{ loan.total_paid|currency }}</div>
+            <div class="small text-muted mt-1">{{ loan.paid_installments_count }} of {{ loan.schedule|length }} paid</div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-label">Outstanding Principal</div>
+            <div class="stat-value text-danger fs-4">{{ loan.outstanding_principal|currency }}</div>
+            <div class="small text-muted mt-1">Unpaid principal balance</div>
+        </div>
+    </div>
+</div>
+
+<!-- Repayment Progress Bar Card -->
+<div class="content-card mb-4">
+    <div class="content-card-body p-3">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="fw-semibold text-dark small">Cumulative Repayment Progress</span>
+            <span class="fw-bold text-success small">{{ loan.repayment_progress_percentage }}% Completed</span>
+        </div>
+        <div class="progress progress-custom" style="height: 10px;">
+            <div class="progress-bar bg-success" style="width: {{ loan.repayment_progress_percentage }}%;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Itemized EMI Schedule Table -->
+<div class="content-card">
+    <div class="content-card-header">
+        <h5>
+            <i class="bi bi-calendar3-range text-primary"></i> Monthly Instalment Schedule
+        </h5>
+        <div class="small text-muted">
+            {{ loan.schedule|length }} Total Instalments
+        </div>
+    </div>
+    <div class="content-card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-custom table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Due Date</th>
+                        <th>Principal Comp.</th>
+                        <th>Interest Comp.</th>
+                        <th>Total EMI</th>
+                        <th>Amount Paid</th>
+                        <th>Remaining</th>
+                        <th>Status</th>
+                        <th class="text-end">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in loan.schedule %}
+                    <tr class="{% if item.computed_status == 'Overdue' %}table-danger-subtle{% endif %}">
+                        <td class="fw-bold text-muted">#{{ item.installment_number }}</td>
+                        <td>
+                            <div class="fw-medium text-dark">{{ item.due_date|date_format }}</div>
+                            {% if item.due_date < today_date and item.remaining_amount > 0 %}
+                                <div class="text-danger small"><i class="bi bi-clock-history me-1"></i>Past Due</div>
+                            {% endif %}
+                        </td>
+                        <td>{{ item.principal_component|currency }}</td>
+                        <td>{{ item.interest_component|currency }}</td>
+                        <td class="fw-bold text-dark">{{ item.emi_amount|currency }}</td>
+                        <td class="text-success fw-medium">
+                            {{ item.amount_paid|currency }}
+                            {% if item.payments|length > 1 %}
+                                <span class="badge bg-secondary-subtle text-secondary small" title="{{ item.payments|length }} payments recorded">
+                                    {{ item.payments|length }} txns
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="fw-bold {% if item.remaining_amount > 0 %}text-danger{% else %}text-muted{% endif %}">
+                            {{ item.remaining_amount|currency }}
+                        </td>
+                        <td>
+                            <span class="badge-status {{ item.status_badge_class }}">
+                                {{ item.computed_status }}
+                            </span>
+                        </td>
+                        <td class="text-end">
+                            {% if item.remaining_amount > 0 %}
+                                <a href="{{ url_for('payments.record_installment_payment', emi_id=item.emi_id) }}" 
+                                   class="btn btn-sm btn-success-custom py-1 px-3">
+                                    <i class="bi bi-credit-card me-1"></i> Pay
+                                </a>
+                            {% else %}
+                                <span class="text-success small fw-semibold">
+                                    <i class="bi bi-check-circle-fill me-1"></i> Settled
+                                </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

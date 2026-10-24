@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}{% if is_edit %}Edit Loan{% else %}Add New Loan{% endif %} - EMI Management System{% endblock %}
+{% block page_heading %}{% if is_edit %}Modify Loan Details{% else %}Create New Loan Record{% endif %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="content-card">
+            <div class="content-card-header">
+                <h5>
+                    <i class="bi {% if is_edit %}bi-pencil-square{% else %}bi-plus-circle{% endif %} text-primary"></i>
+                    {% if is_edit %}Edit Loan: {{ loan.loan_name }}{% else %}Add Loan & Generate Repayment Schedule{% endif %}
+                </h5>
+                <a href="{{ url_for('loans.list_loans') }}" class="btn btn-sm btn-outline-custom">
+                    <i class="bi bi-arrow-left me-1"></i> Back to Loans
+                </a>
+            </div>
+            <div class="content-card-body p-4">
+                {% if is_edit and loan.has_payments %}
+                <div class="alert alert-warning d-flex align-items-start gap-2 mb-4">
+                    <i class="bi bi-shield-exclamation fs-5 flex-shrink-0"></i>
+                    <div>
+                        <div class="fw-bold">Safe Edit Policy Active</div>
+                        <div class="small">
+                            Payments have already been logged against this loan. To protect financial integrity and historical records, the principal, interest rate, tenure, and start date cannot be altered. You may update the loan title and lender name.
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <form action="{% if is_edit %}{{ url_for('loans.edit_loan', loan_id=loan.loan_id) }}{% else %}{{ url_for('loans.add_loan') }}{% endif %}" method="POST" novalidate id="loanForm">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="loan_name" class="form-label">Loan Purpose / Title <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="loan_name" name="loan_name" 
+                                   value="{{ loan_data.loan_name or '' }}" placeholder="e.g. HDFC Home Loan, Education Loan" required autofocus>
+                            <div class="form-text">Choose a descriptive name (e.g. Vehicle Loan, Personal Loan).</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="lender_name" class="form-label">Lender / Financial Institution <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="lender_name" name="lender_name" 
+                                   value="{{ loan_data.lender_name or '' }}" placeholder="e.g. State Bank of India, ICICI Bank" required>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="principal_amount" class="form-label">Principal Loan Amount (₹) <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-muted">₹</span>
+                                <input type="number" step="0.01" min="1" class="form-control" id="principal_amount" name="principal_amount" 
+                                       value="{{ loan_data.principal_amount or '' }}" placeholder="e.g. 500000.00" 
+                                       {% if is_edit and loan.has_payments %}readonly{% endif %} required>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="annual_interest_rate" class="form-label">Annual Interest Rate (%) <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input type="number" step="0.01" min="0" max="100" class="form-control" id="annual_interest_rate" name="annual_interest_rate" 
+                                       value="{{ loan_data.annual_interest_rate or '' }}" placeholder="e.g. 8.5 (or 0 for zero-interest)" 
+                                       {% if is_edit and loan.has_payments %}readonly{% endif %} required>
+                                <span class="input-group-text bg-light text-muted">% p.a.</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label for="tenure_months" class="form-label">Loan Tenure (In Months) <span class="text-danger">*</span></label>
+                            <input type="number" min="1" max="360" class="form-control" id="tenure_months" name="tenure_months" 
+                                   value="{{ loan_data.tenure_months or '' }}" placeholder="e.g. 24 (2 years = 24 mos)" 
+                                   {% if is_edit and loan.has_payments %}readonly{% endif %} required>
+                            <div class="form-text">Enter total number of monthly payments (1 to 360).</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="start_date" class="form-label">Loan Commencement Date <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" id="start_date" name="start_date" 
+                                   value="{{ loan_data.start_date or today }}" 
+                                   {% if is_edit and loan.has_payments %}readonly{% endif %} required>
+                            <div class="form-text">First instalment will be due 1 month from this date.</div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+                        <a href="{{ url_for('loans.list_loans') }}" class="btn btn-outline-custom">Cancel</a>
+                        <button type="submit" class="btn btn-primary-custom px-4">
+                            <i class="bi bi-check2-circle me-1"></i>
+                            {% if is_edit %}Save Changes{% else %}Create Loan & Schedule{% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

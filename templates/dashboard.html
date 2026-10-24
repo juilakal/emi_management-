@@ -1,0 +1,311 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - EMI Management System{% endblock %}
+{% block page_heading %}Financial Overview{% endblock %}
+
+{% block content %}
+<!-- Top Welcome Banner & Quick Action -->
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+        <h3 class="fw-bold text-dark mb-1">Hello, {{ current_user.full_name }} 👋</h3>
+        <p class="text-muted mb-0 small">Here is your live financial snapshot and loan repayment status for today.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('emi.calculator') }}" class="btn btn-outline-custom d-flex align-items-center gap-2">
+            <i class="bi bi-calculator"></i>
+            <span>EMI Calculator</span>
+        </a>
+        <a href="{{ url_for('loans.add_loan') }}" class="btn btn-primary-custom d-flex align-items-center gap-2">
+            <i class="bi bi-plus-circle"></i>
+            <span>Add New Loan</span>
+        </a>
+    </div>
+</div>
+
+{% if summary.total_active_loans == 0 and summary.loan_progress_list|length == 0 %}
+<!-- Empty State For New Users -->
+<div class="content-card">
+    <div class="empty-state">
+        <div class="empty-state-icon">
+            <i class="bi bi-wallet2 text-primary opacity-50"></i>
+        </div>
+        <h4 class="empty-state-title">No Active Loans Found</h4>
+        <p class="empty-state-text">
+            You haven't added any loans yet. Click the button below to add your first loan or use our reducing-balance EMI calculator to plan your repayments.
+        </p>
+        <div class="d-flex justify-content-center gap-3">
+            <a href="{{ url_for('loans.add_loan') }}" class="btn btn-primary-custom">
+                <i class="bi bi-plus-lg me-1"></i> Add Your First Loan
+            </a>
+            <a href="{{ url_for('emi.calculator') }}" class="btn btn-outline-custom">
+                <i class="bi bi-calculator me-1"></i> Open Calculator
+            </a>
+        </div>
+    </div>
+</div>
+{% else %}
+
+<!-- 1. KPI Summary Cards Grid -->
+<div class="row g-3 mb-4">
+    <!-- Active Loans -->
+    <div class="col-sm-6 col-xl-2">
+        <div class="stat-card">
+            <div class="stat-icon-wrapper icon-blue">
+                <i class="bi bi-folder2-open"></i>
+            </div>
+            <div class="stat-label">Active Loans</div>
+            <div class="stat-value">{{ summary.total_active_loans }}</div>
+        </div>
+    </div>
+
+    <!-- Original Principal -->
+    <div class="col-sm-6 col-xl-2">
+        <div class="stat-card">
+            <div class="stat-icon-wrapper icon-purple">
+                <i class="bi bi-bank"></i>
+            </div>
+            <div class="stat-label">Original Principal</div>
+            <div class="stat-value fs-5">{{ summary.total_original_principal|currency }}</div>
+        </div>
+    </div>
+
+    <!-- Outstanding Principal -->
+    <div class="col-sm-6 col-xl-2">
+        <div class="stat-card">
+            <div class="stat-icon-wrapper icon-red">
+                <i class="bi bi-pie-chart"></i>
+            </div>
+            <div class="stat-label">Outstanding Principal</div>
+            <div class="stat-value fs-5 text-danger">{{ summary.total_outstanding_principal|currency }}</div>
+        </div>
+    </div>
+
+    <!-- Monthly EMI Commitment -->
+    <div class="col-sm-6 col-xl-2">
+        <div class="stat-card">
+            <div class="stat-icon-wrapper icon-gold">
+                <i class="bi bi-calendar-event"></i>
+            </div>
+            <div class="stat-label">Monthly Commitment</div>
+            <div class="stat-value fs-5 text-primary">{{ summary.total_monthly_emi|currency }}</div>
+        </div>
+    </div>
+
+    <!-- Pending Instalments -->
+    <div class="col-sm-6 col-xl-2">
+        <div class="stat-card">
+            <div class="stat-icon-wrapper icon-cyan">
+                <i class="bi bi-hourglass-split"></i>
+            </div>
+            <div class="stat-label">Pending Instalments</div>
+            <div class="stat-value">{{ summary.pending_installments_count }}</div>
+        </div>
+    </div>
+
+    <!-- Overdue Instalments -->
+    <div class="col-sm-6 col-xl-2">
+        <div class="stat-card">
+            <div class="stat-icon-wrapper icon-red">
+                <i class="bi bi-exclamation-triangle"></i>
+            </div>
+            <div class="stat-label">Overdue Instalments</div>
+            <div class="stat-value {% if summary.overdue_installments_count > 0 %}text-danger{% else %}text-success{% endif %}">
+                {{ summary.overdue_installments_count }}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 2. Visual Charts Row -->
+<div class="row g-3 mb-4">
+    <!-- Chart 1: Repayment Status Ratio -->
+    <div class="col-lg-5">
+        <div class="content-card h-100">
+            <div class="content-card-header">
+                <h5><i class="bi bi-pie-chart-fill text-primary"></i> Instalment Breakdown</h5>
+            </div>
+            <div class="content-card-body d-flex flex-column justify-content-center align-items-center" style="min-height: 280px;">
+                <div style="position: relative; width: 100%; height: 230px;">
+                    <canvas id="installmentStatusChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart 2: Outstanding Balance Distribution -->
+    <div class="col-lg-7">
+        <div class="content-card h-100">
+            <div class="content-card-header">
+                <h5><i class="bi bi-bar-chart-fill text-success"></i> Loan Balance Distribution</h5>
+            </div>
+            <div class="content-card-body" style="min-height: 280px;">
+                <div style="position: relative; width: 100%; height: 230px;">
+                    <canvas id="loanDistributionChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 3. Loan-Wise Repayment Progress -->
+<div class="content-card mb-4">
+    <div class="content-card-header">
+        <h5><i class="bi bi-activity text-primary"></i> Loan Repayment Progress</h5>
+        <a href="{{ url_for('loans.list_loans') }}" class="btn btn-sm btn-outline-custom">View All Loans</a>
+    </div>
+    <div class="content-card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-custom table-hover">
+                <thead>
+                    <tr>
+                        <th>Loan Name</th>
+                        <th>Lender</th>
+                        <th>Principal</th>
+                        <th>Total Paid</th>
+                        <th>Outstanding</th>
+                        <th>Progress</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for lp in summary.loan_progress_list %}
+                    <tr>
+                        <td class="fw-semibold text-dark">{{ lp.loan_name }}</td>
+                        <td>{{ lp.lender_name }}</td>
+                        <td>{{ lp.principal|currency }}</td>
+                        <td class="text-success fw-medium">{{ lp.total_paid|currency }}</td>
+                        <td class="text-danger fw-medium">{{ lp.outstanding|currency }}</td>
+                        <td style="min-width: 140px;">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="progress progress-custom flex-grow-1">
+                                    <div class="progress-bar" role="progressbar" style="width: {{ lp.progress_pct }}%;" aria-valuenow="{{ lp.progress_pct }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                                <span class="small fw-semibold text-muted">{{ lp.progress_pct }}%</span>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge-status {% if lp.status == 'Active' %}badge-active{% else %}badge-closed{% endif %}">
+                                {{ lp.status }}
+                            </span>
+                        </td>
+                        <td class="text-end">
+                            <a href="{{ url_for('loans.view_loan', loan_id=lp.loan_id) }}" class="btn btn-sm btn-outline-custom py-1 px-2">
+                                <i class="bi bi-eye"></i> Details
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- 4. Two Columns: Upcoming Payments & Recent Payment History -->
+<div class="row g-3">
+    <!-- Upcoming EMI Payments -->
+    <div class="col-lg-6">
+        <div class="content-card h-100">
+            <div class="content-card-header">
+                <h5><i class="bi bi-calendar-check text-warning"></i> Upcoming EMI Payments</h5>
+                <a href="{{ url_for('emi.schedule') }}" class="btn btn-sm btn-outline-custom">View Schedule</a>
+            </div>
+            <div class="content-card-body p-0">
+                {% if summary.upcoming_installments|length == 0 %}
+                    <div class="p-4 text-center text-muted small">
+                        <i class="bi bi-check-circle-fill text-success fs-3 d-block mb-1"></i>
+                        No pending installments due! You are all caught up.
+                    </div>
+                {% else %}
+                    <div class="table-responsive">
+                        <table class="table table-custom table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Loan</th>
+                                    <th>Instalment #</th>
+                                    <th>Due Date</th>
+                                    <th>Remaining</th>
+                                    <th class="text-end">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in summary.upcoming_installments %}
+                                <tr>
+                                    <td class="fw-medium text-dark">{{ item.loan.loan_name }}</td>
+                                    <td>#{{ item.installment_number }}</td>
+                                    <td>
+                                        <span class="{% if item.due_date < today_date %}text-danger fw-semibold{% endif %}">
+                                            {{ item.due_date|date_format }}
+                                        </span>
+                                    </td>
+                                    <td class="fw-semibold text-primary">{{ item.remaining_amount|currency }}</td>
+                                    <td class="text-end">
+                                        <a href="{{ url_for('payments.record_installment_payment', emi_id=item.emi_id) }}" class="btn btn-sm btn-success-custom py-1 px-2">
+                                            <i class="bi bi-credit-card"></i> Pay
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Payment History -->
+    <div class="col-lg-6">
+        <div class="content-card h-100">
+            <div class="content-card-header">
+                <h5><i class="bi bi-clock-history text-success"></i> Recent Payment History</h5>
+                <a href="{{ url_for('payments.history') }}" class="btn btn-sm btn-outline-custom">All History</a>
+            </div>
+            <div class="content-card-body p-0">
+                {% if summary.recent_payments|length == 0 %}
+                    <div class="p-4 text-center text-muted small">
+                        <i class="bi bi-inbox fs-3 d-block mb-1"></i>
+                        No payments recorded yet.
+                    </div>
+                {% else %}
+                    <div class="table-responsive">
+                        <table class="table table-custom table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Loan</th>
+                                    <th>Amount</th>
+                                    <th>Method</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for p in summary.recent_payments %}
+                                <tr>
+                                    <td>{{ p.payment_date|date_format }}</td>
+                                    <td class="fw-medium text-dark">{{ p.emi.loan.loan_name }}</td>
+                                    <td class="fw-semibold text-success">{{ p.amount_paid|currency }}</td>
+                                    <td><span class="badge bg-light text-dark border">{{ p.payment_method }}</span></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/dashboard_charts.js') }}"></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const chartData = {{ summary.chart_data|tojson | safe }};
+    initDashboardCharts(chartData);
+});
+</script>
+{% endblock %}

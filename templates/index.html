@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+
+{% block title %}EMI Management System - Smart Personal Loan & EMI Tracker{% endblock %}
+
+{% block public_content %}
+<!-- Hero Section -->
+<section class="py-5 bg-white border-bottom">
+    <div class="container py-lg-5">
+        <div class="row align-items-center gy-4">
+            <div class="col-lg-7">
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill fw-semibold mb-3">
+                    <i class="bi bi-stars me-1"></i> Web Technology Mini Project
+                </span>
+                <h1 class="display-4 fw-bold text-dark lh-sm mb-3">
+                    Smart, Accurate <span class="text-primary">EMI & Loan Management</span> in One Place
+                </h1>
+                <p class="lead text-muted mb-4">
+                    Take total control of your loans, calculate exact reducing-balance instalments, track payment histories, and safeguard your financial commitments with our comprehensive banking-style portal.
+                </p>
+                <div class="d-flex flex-wrap gap-3">
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-primary-custom btn-lg d-flex align-items-center gap-2">
+                        <span>Get Started Free</span>
+                        <i class="bi bi-arrow-right"></i>
+                    </a>
+                    <a href="{{ url_for('emi.calculator') }}" class="btn btn-outline-custom btn-lg d-flex align-items-center gap-2">
+                        <i class="bi bi-calculator"></i>
+                        <span>Try EMI Calculator</span>
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-5">
+                <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+                    <div class="card-header bg-dark text-white p-3 d-flex align-items-center justify-content-between">
+                        <span class="small fw-semibold"><i class="bi bi-shield-check text-success me-2"></i>Live Dashboard Preview</span>
+                        <span class="badge bg-success">Active</span>
+                    </div>
+                    <div class="card-body p-4 bg-light">
+                        <div class="p-3 bg-white rounded-3 shadow-sm mb-3 border">
+                            <div class="text-muted small">Total Active Loan Principal</div>
+                            <div class="h3 fw-bold text-dark mb-0">₹12,50,000.00</div>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <div class="p-2 bg-white rounded-3 border">
+                                    <div class="small text-muted">Monthly EMI</div>
+                                    <div class="fw-bold text-primary">₹34,815.00</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-2 bg-white rounded-3 border">
+                                    <div class="small text-muted">Repayment Rate</div>
+                                    <div class="fw-bold text-success">82.4%</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="alert alert-info py-2 px-3 small mb-0 border-0">
+                            <i class="bi bi-info-circle me-1"></i> Reducing-balance mathematical amortization model.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-5 bg-light">
+    <div class="container py-lg-4">
+        <div class="text-center max-w-700 mx-auto mb-5">
+            <h6 class="text-primary text-uppercase fw-bold letter-spacing-1">Features & Capabilities</h6>
+            <h2 class="fw-bold text-dark">Designed for Complete Financial Visibility</h2>
+            <p class="text-muted">Built with robust banking calculations, strict security standards, and an intuitive user interface.</p>
+        </div>
+
+        <div class="row g-4">
+            <!-- Feature 1 -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 border-0 shadow-sm rounded-3 p-4">
+                    <div class="stat-icon-wrapper icon-blue mb-3">
+                        <i class="bi bi-calculator-fill fs-4"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark">Reducing Balance Calculator</h5>
+                    <p class="text-muted small">
+                        Accurately calculates monthly installments using standard financial compound formulas: \(P \cdot r \cdot (1+r)^n / ((1+r)^n - 1)\).
+                    </p>
+                </div>
+            </div>
+
+            <!-- Feature 2 -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 border-0 shadow-sm rounded-3 p-4">
+                    <div class="stat-icon-wrapper icon-green mb-3">
+                        <i class="bi bi-calendar2-check-fill fs-4"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark">Itemized Amortization Schedules</h5>
+                    <p class="text-muted small">
+                        Generates monthly breakdowns isolating principal and interest components with proper month-end date progression and penny reconciliation.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Feature 3 -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 border-0 shadow-sm rounded-3 p-4">
+                    <div class="stat-icon-wrapper icon-gold mb-3">
+                        <i class="bi bi-credit-card-2-front-fill fs-4"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark">Payment Tracking & History</h5>
+                    <p class="text-muted small">
+                        Record partial and full payments across Bank Transfer, UPI, Cash, and Other methods with validation against overpayments.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Feature 4 -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 border-0 shadow-sm rounded-3 p-4">
+                    <div class="stat-icon-wrapper icon-red mb-3">
+                        <i class="bi bi-exclamation-triangle-fill fs-4"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark">Overdue Detection</h5>
+                    <p class="text-muted small">
+                        Dynamic evaluation checks system dates against installment due dates to highlight overdue obligations before penalties occur.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Feature 5 -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 border-0 shadow-sm rounded-3 p-4">
+                    <div class="stat-icon-wrapper icon-purple mb-3">
+                        <i class="bi bi-shield-lock-fill fs-4"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark">Strict Isolation & Security</h5>
+                    <p class="text-muted small">
+                        Werkzeug password hashing, session cookies, CSRF protection, and multi-tenant authorization preventing any unauthorized data access.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Feature 6 -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 border-0 shadow-sm rounded-3 p-4">
+                    <div class="stat-icon-wrapper icon-cyan mb-3">
+                        <i class="bi bi-file-earmark-spreadsheet-fill fs-4"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark">Interactive Analytics & CSV Export</h5>
+                    <p class="text-muted small">
+                        Visual Chart.js diagrams tracking paid vs pending ratios, loan balances, and one-click sanitized CSV exports of payment ledgers.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="py-5 bg-white border-top">
+    <div class="container py-lg-4">
+        <div class="text-center mb-5">
+            <h6 class="text-primary text-uppercase fw-bold">Step-by-Step Workflow</h6>
+            <h2 class="fw-bold text-dark">How The System Works</h2>
+        </div>
+
+        <div class="row g-4 text-center">
+            <div class="col-md-4">
+                <div class="p-4">
+                    <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center fw-bold fs-4 mb-3" style="width: 60px; height: 60px;">1</div>
+                    <h5 class="fw-bold text-dark">Register & Add Loan</h5>
+                    <p class="text-muted small">Input loan purpose, lender, principal amount, annual interest rate, and tenure.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="p-4">
+                    <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center fw-bold fs-4 mb-3" style="width: 60px; height: 60px;">2</div>
+                    <h5 class="fw-bold text-dark">Automatic Schedule</h5>
+                    <p class="text-muted small">The server computes exact monthly EMIs and creates the full reducing-balance schedule.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="p-4">
+                    <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center fw-bold fs-4 mb-3" style="width: 60px; height: 60px;">3</div>
+                    <h5 class="fw-bold text-dark">Track & Pay</h5>
+                    <p class="text-muted small">Log payments as they occur, watch balances decrease, and review historical records.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-4">
+            <a href="{{ url_for('auth.register') }}" class="btn btn-primary-custom btn-lg">Create Your Account Today</a>
+        </div>
+    </div>
+</section>
+{% endblock %}

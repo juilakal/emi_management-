@@ -1,0 +1,464 @@
+/* ==========================================================================
+   EMI MANAGEMENT SYSTEM - MODERN BANKING THEME
+   Color Palette: Deep Navy Blue (#0f172a, #1e3a8a), Crisp White (#ffffff),
+                  Emerald Green Accent (#059669, #10b981), Light Slate (#f8fafc)
+   ========================================================================== */
+
+:root {
+    --primary-navy: #1e3a8a;
+    --navy-dark: #0f172a;
+    --navy-light: #3b82f6;
+    --accent-green: #059669;
+    --accent-green-hover: #047857;
+    --accent-gold: #d97706;
+    --danger-red: #dc2626;
+    --bg-light: #f1f5f9;
+    --card-bg: #ffffff;
+    --text-primary: #1e293b;
+    --text-muted: #64748b;
+    --border-color: #e2e8f0;
+    --sidebar-width: 260px;
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: var(--bg-light);
+    color: var(--text-primary);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* --------------------------------------------------------------------------
+   App Layout: Topbar & Sidebar
+   -------------------------------------------------------------------------- */
+.app-wrapper {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* Sidebar for authenticated dashboard */
+.app-sidebar {
+    width: var(--sidebar-width);
+    background-color: var(--navy-dark);
+    color: #ffffff;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s ease;
+    z-index: 1000;
+}
+
+.app-sidebar .sidebar-brand {
+    padding: 1.5rem 1.25rem;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #ffffff;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.app-sidebar .sidebar-brand i {
+    font-size: 1.5rem;
+    color: #38bdf8;
+}
+
+.app-sidebar .sidebar-nav {
+    list-style: none;
+    padding: 1rem 0.75rem;
+    margin: 0;
+    flex-grow: 1;
+}
+
+.app-sidebar .nav-item {
+    margin-bottom: 0.35rem;
+}
+
+.app-sidebar .nav-link {
+    color: #94a3b8;
+    padding: 0.7rem 1rem;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.app-sidebar .nav-link:hover {
+    color: #ffffff;
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+.app-sidebar .nav-link.active {
+    color: #ffffff;
+    background-color: var(--primary-navy);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.app-sidebar .nav-link i {
+    font-size: 1.15rem;
+    width: 20px;
+    text-align: center;
+}
+
+.app-sidebar .sidebar-footer {
+    padding: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Main Content Area */
+.app-content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow-x: hidden;
+}
+
+.app-header {
+    background-color: #ffffff;
+    border-bottom: 1px solid var(--border-color);
+    padding: 0.85rem 1.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: var(--shadow-sm);
+}
+
+.main-body {
+    flex-grow: 1;
+    padding: 1.75rem;
+}
+
+/* Public Top Navigation Bar (for landing, login, register, public calculator) */
+.public-navbar {
+    background-color: #ffffff;
+    border-bottom: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
+}
+
+.public-navbar .navbar-brand {
+    font-weight: 700;
+    color: var(--primary-navy);
+    font-size: 1.3rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.public-navbar .nav-link {
+    color: var(--text-primary);
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+}
+
+.public-navbar .nav-link:hover {
+    color: var(--primary-navy);
+}
+
+/* Footer */
+.app-footer {
+    background-color: #ffffff;
+    border-top: 1px solid var(--border-color);
+    padding: 1rem 1.75rem;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+/* --------------------------------------------------------------------------
+   Dashboard Cards & Metrics
+   -------------------------------------------------------------------------- */
+.stat-card {
+    background-color: var(--card-bg);
+    border-radius: 0.75rem;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
+    padding: 1.35rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    height: 100%;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.stat-card .stat-icon-wrapper {
+    width: 48px;
+    height: 48px;
+    border-radius: 0.65rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+    margin-bottom: 0.85rem;
+}
+
+.stat-card .stat-label {
+    font-size: 0.825rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+    margin-bottom: 0.35rem;
+}
+
+.stat-card .stat-value {
+    font-size: 1.65rem;
+    font-weight: 700;
+    color: var(--navy-dark);
+    line-height: 1.2;
+}
+
+/* Stat color variants */
+.icon-blue { background-color: #e0e7ff; color: #3730a3; }
+.icon-green { background-color: #d1fae5; color: #065f46; }
+.icon-gold { background-color: #fef3c7; color: #92400e; }
+.icon-red { background-color: #fee2e2; color: #991b1b; }
+.icon-purple { background-color: #f3e8ff; color: #6b21a8; }
+.icon-cyan { background-color: #cffafe; color: #155e75; }
+
+/* --------------------------------------------------------------------------
+   Standard Content Cards & Tables
+   -------------------------------------------------------------------------- */
+.content-card {
+    background-color: var(--card-bg);
+    border-radius: 0.75rem;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+}
+
+.content-card-header {
+    padding: 1.15rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #ffffff;
+}
+
+.content-card-header h5 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--navy-dark);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.content-card-body {
+    padding: 1.5rem;
+}
+
+/* Tables */
+.table-custom {
+    margin-bottom: 0;
+}
+
+.table-custom th {
+    background-color: #f8fafc;
+    color: #475569;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-top: none;
+    border-bottom: 1px solid var(--border-color);
+    padding: 0.85rem 1rem;
+    white-space: nowrap;
+}
+
+.table-custom td {
+    padding: 0.95rem 1rem;
+    vertical-align: middle;
+    font-size: 0.925rem;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-primary);
+}
+
+.table-custom tr:last-child td {
+    border-bottom: none;
+}
+
+.table-custom tr:hover td {
+    background-color: #f8fafc;
+}
+
+/* --------------------------------------------------------------------------
+   Badges
+   -------------------------------------------------------------------------- */
+.badge-status {
+    padding: 0.35rem 0.65rem;
+    border-radius: 2rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.badge-paid { background-color: #d1fae5; color: #065f46; }
+.badge-overdue { background-color: #fee2e2; color: #991b1b; }
+.badge-partial { background-color: #e0f2fe; color: #0369a1; }
+.badge-pending { background-color: #fef3c7; color: #92400e; }
+.badge-active { background-color: #dbeafe; color: #1e40af; }
+.badge-closed { background-color: #e2e8f0; color: #475569; }
+
+/* --------------------------------------------------------------------------
+   Buttons & Form Controls
+   -------------------------------------------------------------------------- */
+.btn-primary-custom {
+    background-color: var(--primary-navy);
+    border-color: var(--primary-navy);
+    color: #ffffff;
+    font-weight: 500;
+    padding: 0.55rem 1.25rem;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.btn-primary-custom:hover {
+    background-color: #172554;
+    border-color: #172554;
+    color: #ffffff;
+}
+
+.btn-success-custom {
+    background-color: var(--accent-green);
+    border-color: var(--accent-green);
+    color: #ffffff;
+    font-weight: 500;
+    padding: 0.55rem 1.25rem;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.btn-success-custom:hover {
+    background-color: var(--accent-green-hover);
+    border-color: var(--accent-green-hover);
+    color: #ffffff;
+}
+
+.btn-outline-custom {
+    border: 1px solid var(--border-color);
+    background-color: #ffffff;
+    color: var(--text-primary);
+    font-weight: 500;
+    padding: 0.55rem 1.25rem;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.btn-outline-custom:hover {
+    background-color: #f8fafc;
+    border-color: #cbd5e1;
+    color: var(--navy-dark);
+}
+
+.form-control, .form-select {
+    border-radius: 0.5rem;
+    border: 1px solid var(--border-color);
+    padding: 0.65rem 0.95rem;
+    font-size: 0.95rem;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--navy-light);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.form-label {
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: var(--navy-dark);
+    margin-bottom: 0.4rem;
+}
+
+/* --------------------------------------------------------------------------
+   Progress Bars
+   -------------------------------------------------------------------------- */
+.progress-custom {
+    height: 8px;
+    border-radius: 4px;
+    background-color: #e2e8f0;
+    overflow: hidden;
+}
+
+.progress-custom .progress-bar {
+    background-color: var(--accent-green);
+}
+
+/* --------------------------------------------------------------------------
+   Empty States
+   -------------------------------------------------------------------------- */
+.empty-state {
+    padding: 3rem 1.5rem;
+    text-align: center;
+}
+
+.empty-state-icon {
+    font-size: 3rem;
+    color: #94a3b8;
+    margin-bottom: 1rem;
+}
+
+.empty-state-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--navy-dark);
+    margin-bottom: 0.5rem;
+}
+
+.empty-state-text {
+    color: var(--text-muted);
+    max-width: 420px;
+    margin: 0 auto 1.5rem auto;
+    font-size: 0.95rem;
+}
+
+/* --------------------------------------------------------------------------
+   Responsive Mobile Adjustments
+   -------------------------------------------------------------------------- */
+@media (max-width: 991.98px) {
+    .app-sidebar {
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: -100%;
+    }
+
+    .app-sidebar.show {
+        left: 0;
+    }
+
+    .sidebar-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+        display: none;
+    }
+
+    .sidebar-backdrop.show {
+        display: block;
+    }
+
+    .main-body {
+        padding: 1rem;
+    }
+}

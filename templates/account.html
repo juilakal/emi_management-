@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}My Account - EMI Management System{% endblock %}
+{% block page_heading %}User Profile & Security{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="content-card mb-4">
+            <div class="content-card-header">
+                <h5><i class="bi bi-person-badge-fill text-primary"></i> Account Information</h5>
+            </div>
+            <div class="content-card-body p-4">
+                <div class="d-flex align-items-center gap-3 mb-4 pb-3 border-bottom">
+                    <div class="stat-icon-wrapper icon-blue" style="width: 64px; height: 64px;">
+                        <i class="bi bi-person-circle fs-2"></i>
+                    </div>
+                    <div>
+                        <h4 class="fw-bold text-dark mb-0">{{ user.full_name }}</h4>
+                        <div class="text-muted">{{ user.email }}</div>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-sm-6">
+                        <label class="form-label text-muted small">User ID</label>
+                        <div class="fw-semibold text-dark">#{{ user.user_id }}</div>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label text-muted small">Account Created</label>
+                        <div class="fw-semibold text-dark">{{ user.created_at.strftime('%d %B %Y') }}</div>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label text-muted small">Total Loans Tracked</label>
+                        <div class="fw-semibold text-dark">{{ summary.loan_progress_list|length }} loans</div>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label text-muted small">Total Repayments Made</label>
+                        <div class="fw-semibold text-success">{{ summary.total_amount_paid|currency }}</div>
+                    </div>
+                </div>
+
+                <div class="p-3 bg-light rounded-3 border">
+                    <div class="fw-semibold small text-dark mb-1"><i class="bi bi-shield-check text-success me-1"></i>Security Status</div>
+                    <div class="text-muted small">
+                        Passwords are encrypted using Werkzeug secure PBKDF2 SHA-256 password hashing. Sessions are protected with HTTPOnly and SameSite cookies.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
