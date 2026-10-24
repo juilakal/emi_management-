@@ -13,12 +13,6 @@
     {% block extra_head %}{% endblock %}
 </head>
 <body>
-{% if db_mode == 'sqlite_fallback' %}
-<div class="alert alert-warning mb-0 text-center py-2 px-3 small border-bottom rounded-0 d-flex justify-content-center align-items-center gap-2" role="alert">
-    <i class="bi bi-info-circle-fill text-warning fs-6"></i>
-    <span><strong>Notice:</strong> MySQL was not reachable at <code>127.0.0.1:3306</code>. The app is running locally using <code>instance/emi_management.sqlite</code>. Everything is functional! (Start MySQL in macOS System Settings whenever you wish to use MySQL).</span>
-</div>
-{% endif %}
 
 {% if current_user %}
 <!-- ================= LOGGED-IN APPLICATION LAYOUT ================= -->
@@ -55,12 +49,6 @@
                 <a href="{{ url_for('emi.schedule') }}" class="nav-link {% if request.endpoint == 'emi.schedule' %}active{% endif %}">
                     <i class="bi bi-calendar3"></i>
                     <span>EMI Schedule</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="{{ url_for('payments.history') }}" class="nav-link {% if request.endpoint == 'payments.history' %}active{% endif %}">
-                    <i class="bi bi-clock-history"></i>
-                    <span>Payment History</span>
                 </a>
             </li>
             <li class="nav-item">
@@ -154,10 +142,7 @@
 <!-- ================= PUBLIC LAYOUT (LANDING, AUTH, PUBLIC CALCULATOR) ================= -->
 <nav class="navbar navbar-expand-lg public-navbar sticky-top">
     <div class="container">
-        <a class="navbar-brand" href="{{ url_for('dashboard.index') }}">
-            <i class="bi bi-shield-check text-primary"></i>
-            <span>LoanTrack EMI</span>
-        </a>
+        <a class="navbar-brand" href="{{ url_for('dashboard.index') }}">EMI Tracker</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#publicNav">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -167,12 +152,12 @@
                     <a class="nav-link" href="{{ url_for('dashboard.index') }}">Home</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('emi.calculator') }}">EMI Calculator</a>
+                    <a class="nav-link" href="{{ url_for('emi.calculator') }}">Calculator</a>
                 </li>
             </ul>
             <div class="d-flex align-items-center gap-2">
-                <a href="{{ url_for('auth.login') }}" class="btn btn-outline-custom">Log In</a>
-                <a href="{{ url_for('auth.register') }}" class="btn btn-primary-custom">Get Started</a>
+                <a href="{{ url_for('auth.login') }}" class="btn btn-outline-custom">Sign in</a>
+                <a href="{{ url_for('auth.register') }}" class="btn btn-primary-custom">Register</a>
             </div>
         </div>
     </div>
@@ -198,8 +183,7 @@
 
 <footer class="app-footer mt-auto">
     <div class="container text-center">
-        <div>&copy; {{ now_year }} <strong>EMI Management System</strong> &bull; TE Computer Engineering Web Technology Mini Project</div>
-        <div class="text-muted small mt-1">Full-stack web application powered by Flask, MySQL, SQLAlchemy, and Chart.js</div>
+        <div>&copy; {{ now_year }} EMI Management System</div>
     </div>
 </footer>
 {% endif %}

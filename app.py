@@ -98,7 +98,12 @@ def create_app(config_name: str = None) -> Flask:
     # HTTP Error Handlers
     @app.errorhandler(400)
     def bad_request(error):
-        return render_template("404.html", error_title="400 - Bad Request", error_message=getattr(error, "description", "The request could not be processed.")), 400
+        return render_template(
+            "404.html",
+            error_code="400",
+            error_title="Please try again",
+            error_message=getattr(error, "description", "The request could not be processed."),
+        ), 400
 
     @app.errorhandler(404)
     def page_not_found(error):

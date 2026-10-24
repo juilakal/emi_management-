@@ -1,10 +1,10 @@
 from datetime import date
 from decimal import Decimal, InvalidOperation
-from flask import Blueprint, render_template, request, jsonify, flash
+from flask import Blueprint, render_template, request, jsonify, flash, redirect, url_for
 from routes.auth_middleware import login_required, get_current_user
 from services.emi_calculator import get_loan_calculation_summary
 from services.loan_service import get_user_loans
-from services.emi_schedule_service import get_all_installments_for_user
+from services.emi_schedule_service import get_all_installments_for_user, update_installment_status
 
 emi_bp = Blueprint("emi", __name__)
 
@@ -147,3 +147,17 @@ def schedule():
         selected_loan_id=loan_id,
         selected_status=status_filter
     )
+
+
+@emi_bp.route("/schedule/<int:emi_id>/status", methods=["POST"])
+@login_required
+def update_status(emi_id: int):
+    """Manually update an EMI status without creating a payment transaction."""
+    user = get_current_user()
+    success, error = update_installment_status(
+        user.user_id,
+        emi_id,
+        request.form.get("status", "Pending")
+    )
+    flash("EMI status updated." if success else error, "success" if success else "danger")
+    return redirect(request.referrer or url_for("emi.schedule"))

@@ -86,6 +86,28 @@ def test_protected_routes_redirect_unauthenticated(client):
         assert "/login" in response.headers["Location"]
 
 
+def test_client_registration_creates_account_and_logs_in(client, app):
+    """Registering via the form should create the user and open the dashboard."""
+    get_resp = client.get("/register")
+    assert get_resp.status_code == 200
+
+    with client.session_transaction() as sess:
+        csrf = sess.get("_csrf_token")
+
+    response = client.post("/register", data={
+        "csrf_token": csrf,
+        "full_name": "New User",
+        "email": "newuser@example.com",
+        "password": "secret123",
+        "confirm_password": "secret123",
+    }, follow_redirects=True)
+
+    assert response.status_code == 200
+    assert b"Financial Overview" in response.data
+    with app.app_context():
+        assert User.query.filter_by(email="newuser@example.com").first() is not None
+
+
 def test_client_login_and_logout_flow(client, registered_user):
     """Test logging in via HTTP sets session, and logging out clears it."""
     # Post login

@@ -1,7 +1,6 @@
-from datetime import date
 from decimal import Decimal
 from typing import List, Optional, Tuple
-from models import db, EMISchedule, Loan, Payment
+from models import db, EMISchedule, Loan
 
 
 def get_schedule_for_loan(loan_id: int, user_id: int) -> Optional[List[EMISchedule]]:
@@ -45,7 +44,7 @@ def get_all_installments_for_user(
 ) -> List[EMISchedule]:
     """
     Retrieve all instalments for a user with optional loan filter and status filter.
-    Calculates dynamic status (Pending, Partially Paid, Paid, Overdue).
+    Returns the manually maintained EMI status.
     """
     query = EMISchedule.query.join(Loan).filter(Loan.user_id == user_id)
 
@@ -82,33 +81,11 @@ def update_installment_status(
     try:
         if clean_status == "Paid":
             installment.status = "Paid"
-            # Replace existing payments with full payment
-            Payment.query.filter_by(emi_id=installment.emi_id).delete()
-            full_payment = Payment(
-                emi_id=installment.emi_id,
-                amount_paid=installment.emi_amount,
-                payment_date=date.today(),
-                payment_method="Tracked EMI",
-                reference_number=f"EMI-{installment.installment_number}-PAID"
-            )
-            db.session.add(full_payment)
-
         elif clean_status == "Pending":
             installment.status = "Pending"
-            Payment.query.filter_by(emi_id=installment.emi_id).delete()
 
         elif clean_status == "Partially Paid":
             installment.status = "Partially Paid"
-            if amount_paid is not None and amount_paid > 0:
-                Payment.query.filter_by(emi_id=installment.emi_id).delete()
-                part_payment = Payment(
-                    emi_id=installment.emi_id,
-                    amount_paid=amount_paid,
-                    payment_date=date.today(),
-                    payment_method="Tracked EMI",
-                    reference_number=f"EMI-{installment.installment_number}-PARTIAL"
-                )
-                db.session.add(part_payment)
 
         # Check if entire loan is now fully satisfied
         loan = installment.loan

@@ -101,13 +101,13 @@ class Loan(db.Model):
 
     @property
     def has_payments(self) -> bool:
-        """Returns True if any payment has been recorded for any instalment."""
-        return any(len(item.payments) > 0 for item in self.schedule)
+        """Payment transactions are not part of the EMI tracker."""
+        return False
 
     @property
     def is_editable(self) -> bool:
-        """Safe edit policy: loans can be directly modified only before any payments are recorded."""
-        return not self.has_payments
+        """Loan details remain editable because no payment ledger is maintained."""
+        return True
 
     def __repr__(self) -> str:
         return f"<Loan {self.loan_id}: {self.loan_name} (User {self.user_id})>"

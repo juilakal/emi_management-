@@ -92,7 +92,7 @@
                         <th>Total EMI</th>
                         <th>Amount Paid</th>
                         <th>Remaining</th>
-                        <th>Status</th>
+                        <th>EMI Status</th>
                         <th class="text-end">Action</th>
                     </tr>
                 </thead>
@@ -111,11 +111,6 @@
                         <td class="fw-bold text-dark">{{ item.emi_amount|currency }}</td>
                         <td class="text-success fw-medium">
                             {{ item.amount_paid|currency }}
-                            {% if item.payments|length > 1 %}
-                                <span class="badge bg-secondary-subtle text-secondary small" title="{{ item.payments|length }} payments recorded">
-                                    {{ item.payments|length }} txns
-                                </span>
-                            {% endif %}
                         </td>
                         <td class="fw-bold {% if item.remaining_amount > 0 %}text-danger{% else %}text-muted{% endif %}">
                             {{ item.remaining_amount|currency }}
@@ -126,16 +121,14 @@
                             </span>
                         </td>
                         <td class="text-end">
-                            {% if item.remaining_amount > 0 %}
-                                <a href="{{ url_for('payments.record_installment_payment', emi_id=item.emi_id) }}" 
-                                   class="btn btn-sm btn-success-custom py-1 px-3">
-                                    <i class="bi bi-credit-card me-1"></i> Pay
-                                </a>
-                            {% else %}
-                                <span class="text-success small fw-semibold">
-                                    <i class="bi bi-check-circle-fill me-1"></i> Settled
-                                </span>
-                            {% endif %}
+                            <form action="{{ url_for('emi.update_status', emi_id=item.emi_id) }}" method="POST" class="d-flex justify-content-end gap-1">
+                                <select name="status" class="form-select form-select-sm" aria-label="Update EMI status">
+                                    <option value="Pending" {% if item.status == 'Pending' %}selected{% endif %}>Pending</option>
+                                    <option value="Partially Paid" {% if item.status == 'Partially Paid' %}selected{% endif %}>Partially Paid</option>
+                                    <option value="Paid" {% if item.status == 'Paid' %}selected{% endif %}>Paid</option>
+                                </select>
+                                <button type="submit" class="btn btn-sm btn-primary-custom">Save</button>
+                            </form>
                         </td>
                     </tr>
                     {% endfor %}

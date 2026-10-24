@@ -32,8 +32,12 @@ def register():
                 email=email
             )
 
-        flash("Registration successful! You can now log in with your credentials.", "success")
-        return redirect(url_for("auth.login"))
+        session.clear()
+        session["user_id"] = user.user_id
+        session["user_name"] = user.full_name
+        session["user_email"] = user.email
+        flash(f"Welcome, {user.full_name}! Your account is ready.", "success")
+        return redirect(url_for("dashboard.dashboard"))
 
     return render_template("register.html")
 

@@ -10,7 +10,10 @@ def get_current_user():
     if not user_id:
         return None
     if not hasattr(g, "current_user"):
-        g.current_user = db.session.get(User, user_id)
+        try:
+            g.current_user = db.session.get(User, user_id)
+        except Exception:
+            g.current_user = None
     return g.current_user
 
 
@@ -33,12 +36,24 @@ def generate_csrf_token() -> str:
     return session["_csrf_token"]
 
 
+def _tokens_match(expected: str, token: str) -> bool:
+    """Constant-time compare that never raises on length mismatch."""
+    if not expected or not token or len(expected) != len(token):
+        return False
+    return secrets.compare_digest(expected, token)
+
+
 def validate_csrf():
     """Validates CSRF token for state-changing HTTP methods."""
     if request.method in ("POST", "PUT", "DELETE", "PATCH"):
-        # Check header first, then form field
         token = request.headers.get("X-CSRFToken") or request.form.get("csrf_token")
         expected = session.get("_csrf_token")
-        if not expected or not token or not secrets.compare_digest(expected, token):
-            flash("Invalid or expired session security token. Please try again.", "danger")
-            abort(400, description="CSRF token validation failed.")
+        if not _tokens_match(expected, token):
+            flash("Your session expired. Please try again.", "warning")
+            if request.endpoint == "auth.register":
+                return redirect(url_for("auth.register"))
+            if request.endpoint == "auth.login":
+                return redirect(url_for("auth.login"))
+            if request.referrer:
+                return redirect(request.referrer)
+            abort(400, description="Your session expired. Please try again.")

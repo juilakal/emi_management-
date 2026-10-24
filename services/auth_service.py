@@ -1,5 +1,6 @@
 import re
 from typing import Tuple, Optional
+from sqlalchemy.exc import IntegrityError, OperationalError
 from models import db, User
 
 EMAIL_REGEX = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
@@ -62,12 +63,15 @@ def register_user(
         db.session.add(user)
         db.session.commit()
         return user, None
-    except Exception as e:
+    except IntegrityError:
         db.session.rollback()
-        err_msg = str(e)
-        if "Can't connect to MySQL" in err_msg or "2003" in err_msg or "Operation not permitted" in err_msg:
-            return None, "Cannot connect to MySQL database at 127.0.0.1:3306. Please start your MySQL Server (e.g., via macOS System Settings -> MySQL -> Start MySQL Server)."
-        return None, f"Database error during registration: {err_msg}"
+        return None, "An account with this email address already exists. Please log in."
+    except OperationalError:
+        db.session.rollback()
+        return None, "Could not save your account right now. Please try again."
+    except Exception:
+        db.session.rollback()
+        return None, "Could not create your account. Please try again."
 
 
 def authenticate_user(email: str, password: str) -> Tuple[Optional[User], Optional[str]]:
@@ -80,11 +84,8 @@ def authenticate_user(email: str, password: str) -> Tuple[Optional[User], Option
     clean_email = email.strip().lower()
     try:
         user = User.query.filter_by(email=clean_email).first()
-    except Exception as e:
-        err_msg = str(e)
-        if "Can't connect to MySQL" in err_msg or "2003" in err_msg:
-            return None, "Cannot connect to MySQL database at 127.0.0.1:3306. Please start your MySQL Server (e.g., via macOS System Settings -> MySQL -> Start MySQL Server)."
-        return None, f"Database error during authentication: {err_msg}"
+    except Exception:
+        return None, "Could not sign you in right now. Please try again."
 
     if not user or not user.check_password(password):
         return None, "Invalid email or password. Please try again."
